@@ -1,0 +1,41 @@
+# 詳細 https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# 依存パッケージ
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# ネイティブ関連
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# デバッグログ
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# ローカル環境変数
+.env*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# 自動生成されるネイティブプロジェクト
+/ios
+/android
