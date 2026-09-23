@@ -4,7 +4,7 @@
 
 起動時に新規登録のデモ画面が表示されます。メール形式、必須項目、パスワード（仮の条件：8文字以上）、確認用パスワード、同意チェックを検証し、登録完了のデモを表示します。入力情報は送信・保存されず、実際のアカウントは作成されません。利用規約・プライバシーポリシー本文は準備中の案内です。
 
-画面は `frontend/src/app/index.tsx`、入力部品は `frontend/src/components/FormField.tsx`、入力チェックと差し替え用モックは `frontend/src/features/auth/registration.ts` にあります。従来のAPI接続確認画面はWebの `/health` で確認できます。
+新規登録・ログインの実装は `frontend/login/` にまとめています。画面は `screens/`、入力部品は `components/FormField.tsx`、入力チェックと差し替え用モックは `registration.ts` と `login.ts`、共通デザインは `styles.ts` にあります。`frontend/src/app/index.tsx` と `login.tsx` は Expo Router 用の入口です。従来のAPI接続確認画面はWebの `/health` で確認できます。
 
 ログイン画面は `/login`、または新規登録画面の「ログイン」から開けます。デモ用メールアドレスは `demo@example.com`、パスワードは `walking123` です。「デモ用情報を入力する」から入力できます。他の値ではログイン失敗を表示します。新規登録時の入力ではログインできません。認証・ログイン状態の保存・パスワード再設定メールの送信は行いません。
 
