@@ -1,5 +1,13 @@
 # Walking App 開発環境
 
+## 新規登録画面
+
+起動時に新規登録のデモ画面が表示されます。メール形式、必須項目、パスワード（仮の条件：8文字以上）、確認用パスワード、同意チェックを検証し、登録完了のデモを表示します。入力情報は送信・保存されず、実際のアカウントは作成されません。利用規約・プライバシーポリシー本文とログインは準備中の案内です。
+
+画面は `frontend/src/app/index.tsx`、入力部品は `frontend/src/components/FormField.tsx`、入力チェックと差し替え用モックは `frontend/src/features/auth/registration.ts` にあります。従来のAPI接続確認画面はWebの `/health` で確認できます。
+
+依存関係を更新後、`frontend` で `npm ci`、`npm run web`（実機では `npm start`）を実行してください。
+
 React Native（Expo / TypeScript）と Python（FastAPI）の開発環境です。Docker の有無が異なるメンバーでも、同じコードで開発できます。
 
 PostgreSQL 18 も Docker で起動します。今回は起動確認用の初期基盤のため、空のデータベースのみを用意し、アプリ用テーブル・サンプルデータ・API からの DB 接続処理はまだ実装していません。
