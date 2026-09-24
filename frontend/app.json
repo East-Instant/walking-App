@@ -3,7 +3,17 @@
     "name": "Walking App",
     "slug": "walking-app",
     "scheme": "walking-app",
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "お気に入りの場所に保存する写真を選択します。",
+          "cameraPermission": "お気に入りの場所の写真を撮影します。",
+          "microphonePermission": false
+        }
+      ]
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
