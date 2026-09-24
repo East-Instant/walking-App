@@ -71,4 +71,4 @@ TEST_DATABASE_URL=postgresql://postgres:pin_test_only@localhost:55432/pin_test p
 
 API所有権、JWT検証、入力制限、同時再送、距離境界・日付変更線、DB失敗時のロールバックを検証します。マイグレーションも実行します。終了後は専用コンテナを `docker stop walking-pin-test` で停止できます。
 
-写真・公開共有・GPS取得・フロント接続は対象外です。外部公開時のユーザー/IP単位のレート制限、総保存件数の制限、負荷試験は未実装です。現在の件数・検索半径・DB待機上限は、それらの代替ではありません。
+写真APIと撮影・表示画面を追加しました。写真の設定とAPIは [PHOTOS.md](PHOTOS.md)、地図担当向けの連携方法は [frontend/photos/README.md](../frontend/photos/README.md) を参照してください。公開共有・GPS取得・地図フロントは対象外です。外部公開時のユーザー/IP単位のレート制限、総保存件数の制限、負荷試験は未実装です。現在の件数・検索半径・DB待機上限は、それらの代替ではありません。
