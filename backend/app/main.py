@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app.pins.router import router as pins_router
+from app.photos.router import router as photos_router
+from app.photos.limits import PhotoUploadLimit
 from app.dependencies.auth import SECRET_KEY
 from contextlib import asynccontextmanager
 from sqlalchemy.exc import SQLAlchemyError
@@ -38,6 +40,7 @@ async def validation_error(request, exc):
     ]})
 
 
+app.add_middleware(PhotoUploadLimit)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -53,6 +56,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(pins_router)
+app.include_router(photos_router)
 
 
 @app.get("/health")

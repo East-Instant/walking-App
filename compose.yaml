@@ -29,12 +29,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-walking_app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-walking_app_dev}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in root .env}
+      PHOTO_STORAGE_DIR: /data/photos
       WATCHFILES_FORCE_POLLING: "true"
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app
+      - photo_data:/data/photos
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 5s
@@ -64,3 +66,4 @@ services:
 volumes:
   frontend_node_modules:
   postgres_data:
+  photo_data:

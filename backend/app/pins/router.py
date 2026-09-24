@@ -6,6 +6,8 @@ from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models import User
 from app.pins import service
+from app.photos import service as photo_service
+from app.photos.storage import get_storage, LocalPhotoStorage
 from app.pins.schemas import PinCreate, PinUpdate, PinResponse, PinPage
 
 router = APIRouter(prefix='/pins', tags=['Favorite pins'])
@@ -43,7 +45,11 @@ def update_pin(pin_id: UUID, data: PinUpdate, db: DB, user: CurrentUser):
 
 
 @router.delete('/{pin_id}', status_code=204)
-def delete_pin(pin_id: UUID, db: DB, user: CurrentUser):
-    db.delete(service.owned(db, user.id, pin_id))
+def delete_pin(pin_id: UUID, db: DB, user: CurrentUser,
+               storage: Annotated[LocalPhotoStorage, Depends(get_storage)]):
+    pin = photo_service.lock_pin(db, user.id, pin_id)
+    photo_service.queue_pin_files(db, pin_id)
+    db.delete(pin)
     db.commit()
+    photo_service.drain_deletions(db, storage)
     return Response(status_code=204)

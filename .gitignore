@@ -10,3 +10,6 @@ __pycache__/
 !.env.example
 .DS_Store
 *.tsbuildinfo
+
+# Private uploaded photos
+backend/data/
