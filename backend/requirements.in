@@ -2,3 +2,12 @@ fastapi
 uvicorn[standard]
 httpx
 pytest
+python-jose[cryptography]>=3.4
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart>=0.0.18
+email-validator
+SQLAlchemy
+psycopg2-binary
+alembic
+GeoAlchemy2

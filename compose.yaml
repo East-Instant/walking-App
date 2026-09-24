@@ -1,7 +1,8 @@
 name: walking-app
 services:
   db:
-    image: postgres:18
+    image: postgis/postgis:18-3.6
+    platform: linux/amd64
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
@@ -23,6 +24,11 @@ services:
       - "8000:8000"
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081,http://127.0.0.1:8081}
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-walking_app}
+      POSTGRES_USER: ${POSTGRES_USER:-walking_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-walking_app_dev}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in root .env}
       WATCHFILES_FORCE_POLLING: "true"
     depends_on:
       db:
