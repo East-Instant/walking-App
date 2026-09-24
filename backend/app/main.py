@@ -2,15 +2,41 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# DBエンジン、Baseモデル、テーブル定義（models）のインポート
-from app.database import engine, Base
-from app import models
+from app.database import engine
+from app.pins.router import router as pins_router
+from app.dependencies.auth import SECRET_KEY
+from contextlib import asynccontextmanager
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from app.routers import auth
 
-# DB内にテーブルが存在しない場合、models.py の定義に基づいて自動作成
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Walking App API")
+@asynccontextmanager
+async def lifespan(app):
+    if len(SECRET_KEY) < 32 or SECRET_KEY in {'your-super-secret-key-change-this-in-production', 'inou-network-super-secret-key-change-this'}:
+        raise RuntimeError('SECRET_KEY に32文字以上のランダムな秘密鍵を設定してください')
+    try:
+        yield
+    finally:
+        engine.dispose()
+
+
+app = FastAPI(title="Walking App API", lifespan=lifespan)
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_error(request, exc):
+    return JSONResponse(status_code=503, content={'detail': 'データベース処理を完了できませんでした'})
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request, exc):
+    # Do not echo coordinates or credentials in validation responses.
+    return JSONResponse(status_code=422, content={'detail': [
+        {'loc': list(e['loc']), 'msg': e['msg'], 'type': e['type']} for e in exc.errors()
+    ]})
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,11 +47,12 @@ app.add_middleware(
         ).split(",")
         if origin.strip()
     ],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
 app.include_router(auth.router)
+app.include_router(pins_router)
 
 
 @app.get("/health")
