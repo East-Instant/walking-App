@@ -1,7 +1,6 @@
 export type Registration = { nickname: string; email: string; password: string; confirmation: string; agreed: boolean };
 export type RegistrationErrors = Partial<Record<keyof Registration, string>>;
 
-// 仮の条件。認証 API の仕様確定時にサーバー側と合わせる。
 export function validateRegistration(values: Registration): RegistrationErrors {
   const errors: RegistrationErrors = {};
   if (!values.nickname.trim()) errors.nickname = 'ニックネームを入力してください';
@@ -13,9 +12,4 @@ export function validateRegistration(values: Registration): RegistrationErrors {
   else if (values.password !== values.confirmation) errors.confirmation = 'パスワードが一致していません';
   if (!values.agreed) errors.agreed = '内容を確認し、チェックを入れてください';
   return errors;
-}
-
-// デモ専用。入力内容は送信・保存しない。
-export async function registerMock(): Promise<void> {
-  await new Promise<void>((resolve) => setTimeout(resolve, 800));
 }

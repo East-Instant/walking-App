@@ -17,7 +17,7 @@ router.push({
 
 写真APIには本物の認証が必要です。既存のデモログインとは独立して、写真画面内のログインフォームから `/auth/login` に接続します。アカウントはAPIの `/auth/register` で登録してください。デモの新規登録フォームはアカウントを作りません。
 
-`PhotoSessionProvider` をアプリのルートに配置しています。トークンはメモリだけに保持し、URL・localStorage・AsyncStorageには保存しません。再起動/リロード後と401時は再ログインが必要です。認証統合時には `usePhotoSession().setToken(accessToken)` で実際のログインAPIのトークンを渡せます。ログアウト時は `setToken(null)` を呼びます。別アカウントに切り替える際も一度nullにして画面の状態を破棄してください。
+`AuthSessionProvider` をアプリのルートに配置し、ログイン・足跡・写真で同じ認証状態を共有します。トークンはメモリだけに保持し、URL・localStorage・AsyncStorageには保存しません。再起動/リロード後と401時は再ログインが必要です。
 
 ## 設定と動作
 

@@ -1,6 +1,6 @@
 # ピンAPI（PostgreSQL + PostGIS）
 
-認証済みユーザー本人だけがピンを保存・閲覧・更新・削除できます。フロントのデモ画面とはまだ接続していません。
+認証済みユーザー本人だけがピンを保存・閲覧・更新・削除できます。フロントのログイン・新規登録・足跡・写真画面は同じ認証状態を共有します。
 
 ## Dockerで起動
 
@@ -9,6 +9,14 @@
 1. ルートの `.env.example` を `.env` にコピーし、`SECRET_KEY` をランダムな32文字以上の値に変更します。`python -c "import secrets; print(secrets.token_urlsafe(32))"` で生成できます。サンプルの鍵ではAPIは起動しません。
 2. ルートで `docker compose up --build backend` を実行します。
 3. `http://localhost:8000/docs` から操作します。
+
+開発用のデモユーザーは、API起動後に次のコマンドで作成できます。何度実行しても重複せず、`APP_ENV=production` では実行を拒否します。
+
+```sh
+docker compose exec backend python -m app.scripts.seed_demo_user
+```
+
+ログイン名は `demo@example.com` または `demo_walker`、パスワードは `DemoWalk123!` です。
 
 DBは `postgis/postgis:18-3.6`。既存のPostgreSQL 18ボリュームを継続利用します。初回のイメージ切り替え前に重要なデータをバックアップしてください。`down -v` は不要です。公式イメージのamd64版を使うためApple Siliconではエミュレーション動作です。
 

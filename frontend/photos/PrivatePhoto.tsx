@@ -5,7 +5,7 @@ import { usePhotoSession } from './session';
 import { Action, styles } from './ui';
 
 export function PrivatePhoto({ photo, enlarged = false }: { photo: Photo; enlarged?: boolean }) {
-  const { token, setToken } = usePhotoSession();
+  const { token, logout } = usePhotoSession();
   const [uri, setUri] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -25,12 +25,12 @@ export function PrivatePhoto({ photo, enlarged = false }: { photo: Photo; enlarg
         reader.readAsDataURL(blob);
       } catch (err) {
         if (!active) return;
-        if (err instanceof ApiError && err.status === 401) setToken(null);
+        if (err instanceof ApiError && err.status === 401) logout();
         else setError(true);
       }
     })();
     return () => { active = false; controller.abort(); if (reader.readyState === 1) reader.abort(); };
-  }, [photo.pin_id, photo.id, token, setToken, retry]);
+  }, [photo.pin_id, photo.id, token, logout, retry]);
   return <View style={[enlarged ? styles.preview : styles.thumb, { alignItems: 'center', justifyContent: 'center' }]}>
     {error ? <><Text style={styles.error}>読み込めませんでした</Text><Action title="再読み込み" secondary onPress={() => setRetry(retry + 1)} /></>
       : uri ? <Image accessibilityLabel="ピンに保存した写真" source={{ uri }} style={{ width: '100%', height: '100%' }} resizeMode={enlarged ? 'contain' : 'cover'} onError={() => setError(true)} />
