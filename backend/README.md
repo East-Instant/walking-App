@@ -4,6 +4,8 @@
 
 ## Dockerで起動
 
+チーム共通の標準環境はDockerです。APIのDB接続設定は `compose.yaml` から渡し、接続先は `db:5432` に統一しています。ルート `.env` の `POSTGRES_PORT` はPC側の公開ポートだけを変更します。`backend/.env` はComposeでは自動読込しません。
+
 1. ルートの `.env.example` を `.env` にコピーし、`SECRET_KEY` をランダムな32文字以上の値に変更します。`python -c "import secrets; print(secrets.token_urlsafe(32))"` で生成できます。サンプルの鍵ではAPIは起動しません。
 2. ルートで `docker compose up --build backend` を実行します。
 3. `http://localhost:8000/docs` から操作します。
@@ -12,11 +14,11 @@ DBは `postgis/postgis:18-3.6`。既存のPostgreSQL 18ボリュームを継続�
 
 API起動前に `alembic upgrade head` が実行されます。初回移行では既存の `users` テーブルを保持し、PostGIS拡張と `favorite_pins` を追加します。既存ユーザーテーブルはPR #2の構造が前提です。本番はデプロイ前の単一ジョブで移行し、APIのDBユーザーとDDL実行ユーザーを分離してください。
 
-## ローカル起動
+## ローカル直接起動（必要な場合のみ）
 
 Python 3.12の仮想環境で `pip install -r requirements.txt` を実行し、DBを起動してください。
 
-`backend/.env.example` を `.env` にコピーし、秘密鍵と接続先を設定します。Docker外ではDBホストは `localhost`、ポートは公開ポートです。`DATABASE_URL` を設定しない場合は `POSTGRES_HOST/PORT/USER/PASSWORD/DB` も使えます。
+`backend/.env.example` を `.env` にコピーし、秘密鍵を設定します。`DATABASE_URL` 内のホスト `db` を `localhost` に、ポートをDBの公開ポートに変更してください。`DATABASE_URL` は個別設定より優先されるため、URLを残したまま `POSTGRES_HOST` だけを変更しても反映されません。URLを未設定にする場合は `POSTGRES_HOST=localhost` と `POSTGRES_PORT/USER/PASSWORD/DB` で指定できます。
 
 ```sh
 # backendディレクトリで実行。dotenvはマイグレーションに明示的に渡します。

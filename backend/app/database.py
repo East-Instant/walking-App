@@ -4,12 +4,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+# Docker Compose の db サービスを標準接続先とする。
 # URL のパスワードに特殊文字が含まれても安全に扱う。
 DATABASE_URL = os.getenv('DATABASE_URL') or URL.create(
     'postgresql+psycopg2',
     username=os.getenv('POSTGRES_USER', 'walking_app'),
     password=os.getenv('POSTGRES_PASSWORD', 'walking_app_dev'),
-    host=os.getenv('POSTGRES_HOST', 'localhost'),
+    host=os.getenv('POSTGRES_HOST', 'db'),
     port=int(os.getenv('POSTGRES_PORT', '5432')),
     database=os.getenv('POSTGRES_DB', 'walking_app'),
 )
