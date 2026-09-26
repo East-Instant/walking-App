@@ -66,6 +66,7 @@ export default function SignUpScreen() {
               <View style={styles.login}><Text style={styles.hint}>すでにアカウントをお持ちの方</Text><Pressable accessibilityRole="button" disabled={loading} onPress={() => router.replace('/login')} style={styles.loginLink}><Text style={styles.link}>ログイン</Text></Pressable></View>
             </View>}
           </View>
+          <Pressable accessibilityRole="button" style={styles.loginLink} disabled={loading} onPress={() => router.push('/photos')}><Text style={styles.link}>ピンの写真を見る</Text></Pressable>
           <Text style={styles.footer}>あなたのペースで、一歩ずつ。</Text>
           <Text style={styles.demo}>デモ画面 · 入力した情報は送信・保存されません</Text>
         </ScrollView>
