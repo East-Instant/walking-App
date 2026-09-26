@@ -6,6 +6,8 @@
 
 起動時に新規登録画面が表示されます。登録内容は `POST /auth/register` へ送信され、成功すると自動ログインして足跡画面へ移動します。ログイン・足跡・ピン・写真は同じ認証状態を共有します。利用規約・プライバシーポリシー本文は準備中です。
 
+開発中は `test@example.com` のような `@example.com` の架空アドレスでも新規登録できます。メールの本人確認や確認メールの送信は行わず、メールアドレスはログインIDとしてDBで管理します。同じメールアドレスまたはニックネームは重複登録できません。
+
 新規登録・ログインの画面は `frontend/login/`、共通認証状態は `frontend/auth/` にあります。アクセストークンはメモリだけで保持するため、アプリの再起動後は再ログインが必要です。`frontend/src/app/index.tsx`、`login.tsx`、`track.tsx` は Expo Router 用の入口です。
 
 開発用デモアカウントは、APIとDBの起動後に `docker compose exec backend python -m app.scripts.seed_demo_user` で作成します。ログイン画面の「デモアカウントでログイン」は実際の認証APIを使用します。デモユーザーは `demo@example.com` / `demo_walker`、パスワードは `DemoWalk123!` です。デモボタンは開発ビルドだけに表示されます。
@@ -14,7 +16,7 @@
 
 React Native（Expo / TypeScript）と Python（FastAPI）の開発環境です。Docker の有無が異なるメンバーでも、同じコードで開発できます。
 
-PostgreSQL 18 も Docker で起動します。今回は起動確認用の初期基盤のため、空のデータベースのみを用意し、アプリ用テーブル・サンプルデータ・API からの DB 接続処理はまだ実装していません。
+PostgreSQL 18 も Docker で起動します。ユーザー、ピン、写真の管理情報はPostgreSQLへ保存されます。
 
 ## 起動方法の選び方
 

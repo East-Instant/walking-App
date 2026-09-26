@@ -40,6 +40,8 @@ python -m uvicorn app.main:app --env-file .env --reload --no-access-log
 
 `POST /auth/register` で登録し、`POST /auth/login` にフォーム形式の `username`（メールまたはニックネーム）と `password` を渡します。返されたトークンを `Authorization: Bearer <token>` に設定します。`/docs` のAuthorizeも利用できます。JWTの有効期限は `ACCESS_TOKEN_EXPIRE_MINUTES`（初期値30分）。
 
+開発中は `test@example.com` のような `@example.com` の架空アドレスで新規登録できます。確認メールやメール所有者の検証は行いません。メールアドレスとニックネームには一意制約があり、登録済みの値は再利用できません。
+
 | API | 内容 |
 | --- | --- |
 | POST /pins | 保存。新規201、同じ内容の再送200 |
