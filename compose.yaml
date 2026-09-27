@@ -1,7 +1,8 @@
 name: walking-app
 services:
   db:
-    image: postgres:18
+    image: postgis/postgis:18-3.6
+    platform: linux/amd64
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
@@ -20,15 +21,23 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081,http://127.0.0.1:8081}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-walking_app}
+      POSTGRES_USER: ${POSTGRES_USER:-walking_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-walking_app_dev}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in root .env}
+      PHOTO_STORAGE_DIR: /data/photos
       WATCHFILES_FORCE_POLLING: "true"
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./backend/app:/app/app
+      - photo_data:/data/photos
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 5s
@@ -58,3 +67,4 @@ services:
 volumes:
   frontend_node_modules:
   postgres_data:
+  photo_data:

@@ -12,10 +12,8 @@ from app import models, schemas
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# JWT設定（環境変数からの読み込みに対応）
-SECRET_KEY = os.getenv("SECRET_KEY","your-super-secret-key-change-this-in-production")
-ALGORITHM = os.getenv("ALGORITHM","HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES","10080"))  # 有効期限：1週間
+from app.dependencies.auth import SECRET_KEY, ALGORITHM, get_current_user
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '30'))
 
 # パスワードハッシュ化設定
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
