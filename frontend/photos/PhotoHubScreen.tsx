@@ -6,7 +6,7 @@ import { PhotoAccess, usePhotoSession } from './session';
 import { Action, PhotoPage, styles } from './ui';
 
 function PinList() {
-  const { token, setToken } = usePhotoSession();
+  const { token, logout } = usePhotoSession();
   const [pins, setPins] = useState<Pin[]>([]);
   const [offset, setOffset] = useState(0);
   const [next, setNext] = useState<number | null>(null);
@@ -20,11 +20,11 @@ function PinList() {
       if (!controller.signal.aborted) { setPins(data.items); setNext(data.next_offset); }
     }).catch(err => {
       if (controller.signal.aborted) return;
-      if (err instanceof ApiError && err.status === 401) setToken(null);
+      if (err instanceof ApiError && err.status === 401) logout();
       else setError(err.message);
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [offset, retry, token, setToken]);
+  }, [offset, retry, token, logout]);
   return <PhotoPage>
     <Text style={styles.muted}>WALKING APP / PHOTOS</Text><Text accessibilityRole="header" style={styles.title}>お気に入りの写真</Text>
     <Text style={styles.body}>写真を残したい場所を選んでください。</Text>
@@ -33,7 +33,7 @@ function PinList() {
         : pins.map(pin => <View key={pin.id} style={styles.card}><Text style={styles.subtitle}>{pin.title}</Text>{!!pin.memo && <Text style={styles.body}>{pin.memo}</Text>}
           <Action title="この場所の写真を見る" secondary onPress={() => router.push({ pathname: '/photos/[pinId]', params: { pinId: pin.id } })} /></View>)}
     {!loading && !error && <View style={styles.row}>{offset > 0 && <Action title="前のページ" secondary onPress={() => setOffset(Math.max(0, offset - 20))} />}{next !== null && <Action title="次のページ" secondary onPress={() => setOffset(next)} />}</View>}
-    <Action title="ログアウト" secondary onPress={() => setToken(null)} />
+    <Action title="ログアウト" secondary onPress={logout} />
   </PhotoPage>;
 }
 export default function PhotoHubScreen() { return <PhotoAccess><PinList /></PhotoAccess>; }

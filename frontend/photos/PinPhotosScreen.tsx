@@ -10,7 +10,7 @@ import { PhotoAccess, usePhotoSession } from './session';
 import { Action, PhotoPage, styles } from './ui';
 
 function Gallery({ pinId }: { pinId: string }) {
-  const { token, setToken } = usePhotoSession();
+  const { token, logout } = usePhotoSession();
   const [pin, setPin] = useState<Pin | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,9 +30,9 @@ function Gallery({ pinId }: { pinId: string }) {
   }, []);
   const report = useCallback((err: unknown) => {
     if (!active.current) return;
-    if (err instanceof ApiError && err.status === 401) setToken(null);
+    if (err instanceof ApiError && err.status === 401) logout();
     else setError(err instanceof Error ? err.message : '処理を完了できませんでした。');
-  }, [setToken]);
+  }, [logout]);
   const reload = useCallback(async (signal?: AbortSignal) => {
     setLoading(true); setLoadError(false); setError('');
     try {

@@ -1,7 +1,7 @@
-import { PhotoSessionProvider } from '../../photos/session';
+import { AuthSessionProvider } from '../../auth/session';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
-  return <PhotoSessionProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false }} /></PhotoSessionProvider>;
+  return <AuthSessionProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false }} /></AuthSessionProvider>;
 }

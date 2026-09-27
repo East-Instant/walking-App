@@ -16,6 +16,7 @@ export const authStyles = StyleSheet.create({
   checkTarget: { minWidth: 44, minHeight: 48, justifyContent: 'center' }, checkbox: { width: 22, height: 22, borderWidth: 1, borderColor: '#A2B3A6', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }, checked: { backgroundColor: '#246B4C', borderColor: '#246B4C' }, check: { color: '#FFFFFF', fontWeight: '700' },
   links: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }, textLink: { paddingVertical: 4 }, link: { color: '#246B4C', fontSize: 12, fontWeight: '600', textDecorationLine: 'underline', lineHeight: 20 },
   button: { minHeight: 54, borderRadius: 12, backgroundColor: '#246B4C', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 14, gap: 10 }, buttonPressed: { opacity: 0.7 },
+  demoButton: { backgroundColor: '#E8F2EB', borderWidth: 1, borderColor: '#B8D0BF' }, demoButtonText: { color: '#246B4C' },
   buttonText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' }, arrow: { color: '#D7E9DC', fontSize: 19 },
   login: { alignItems: 'center', borderTopWidth: 1, borderTopColor: '#EDF0EB', paddingTop: 19 }, loginLink: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 20 },
   footer: { color: '#758A78', fontSize: 12, marginTop: 24, letterSpacing: 1 }, demo: { fontSize: 10, color: '#738176', textAlign: 'center', marginTop: 10, lineHeight: 18 },

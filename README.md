@@ -4,17 +4,19 @@
 
 ## 新規登録・ログイン画面
 
-起動時に新規登録のデモ画面が表示されます。メール形式、必須項目、パスワード（仮の条件：8文字以上）、確認用パスワード、同意チェックを検証し、登録完了のデモを表示します。入力情報は送信・保存されず、実際のアカウントは作成されません。利用規約・プライバシーポリシー本文は準備中の案内です。
+起動時に新規登録画面が表示されます。登録内容は `POST /auth/register` へ送信され、成功すると自動ログインして足跡画面へ移動します。ログイン・足跡・ピン・写真は同じ認証状態を共有します。利用規約・プライバシーポリシー本文は準備中です。
 
-新規登録・ログインの実装は `frontend/login/` にまとめています。画面は `screens/`、入力部品は `components/FormField.tsx`、入力チェックと差し替え用モックは `registration.ts` と `login.ts`、共通デザインは `styles.ts` にあります。`frontend/src/app/index.tsx` と `login.tsx` は Expo Router 用の入口です。従来のAPI接続確認画面はWebの `/health` で確認できます。
+開発中は `test@example.com` のような `@example.com` の架空アドレスでも新規登録できます。メールの本人確認や確認メールの送信は行わず、メールアドレスはログインIDとしてDBで管理します。同じメールアドレスまたはニックネームは重複登録できません。
 
-ログイン画面は `/login`、または新規登録画面の「ログイン」から開けます。デモ用メールアドレスは `demo@example.com`、パスワードは `walking123` です。「デモ用情報を入力する」から入力できます。他の値ではログイン失敗を表示します。新規登録時の入力ではログインできません。認証・ログイン状態の保存・パスワード再設定メールの送信は行いません。
+新規登録・ログインの画面は `frontend/login/`、共通認証状態は `frontend/auth/` にあります。アクセストークンはメモリだけで保持するため、アプリの再起動後は再ログインが必要です。`frontend/src/app/index.tsx`、`login.tsx`、`track.tsx` は Expo Router 用の入口です。
+
+開発用デモアカウントは、APIとDBの起動後に `docker compose exec backend python -m app.scripts.seed_demo_user` で作成します。ログイン画面の「デモアカウントでログイン」は実際の認証APIを使用します。デモユーザーは `demo@example.com` / `demo_walker`、パスワードは `DemoWalk123!` です。デモボタンは開発ビルドだけに表示されます。
 
 依存関係を更新後、`frontend` で `npm ci`、`npm run web`（実機では `npm start`）を実行してください。
 
 React Native（Expo / TypeScript）と Python（FastAPI）の開発環境です。Docker の有無が異なるメンバーでも、同じコードで開発できます。
 
-PostgreSQL 18 も Docker で起動します。今回は起動確認用の初期基盤のため、空のデータベースのみを用意し、アプリ用テーブル・サンプルデータ・API からの DB 接続処理はまだ実装していません。
+PostgreSQL 18 も Docker で起動します。ユーザー、ピン、写真の管理情報はPostgreSQLへ保存されます。
 
 ## 起動方法の選び方
 

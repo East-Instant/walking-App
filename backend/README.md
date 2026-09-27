@@ -1,6 +1,6 @@
 # ピンAPI（PostgreSQL + PostGIS）
 
-認証済みユーザー本人だけがピンを保存・閲覧・更新・削除できます。フロントのデモ画面とはまだ接続していません。
+認証済みユーザー本人だけがピンを保存・閲覧・更新・削除できます。フロントのログイン・新規登録・足跡・写真画面は同じ認証状態を共有します。
 
 ## Dockerで起動
 
@@ -9,6 +9,14 @@
 1. ルートの `.env.example` を `.env` にコピーし、`SECRET_KEY` をランダムな32文字以上の値に変更します。`python -c "import secrets; print(secrets.token_urlsafe(32))"` で生成できます。サンプルの鍵ではAPIは起動しません。
 2. ルートで `docker compose up --build backend` を実行します。
 3. `http://localhost:8000/docs` から操作します。
+
+開発用のデモユーザーは、API起動後に次のコマンドで作成できます。何度実行しても重複せず、`APP_ENV=production` では実行を拒否します。
+
+```sh
+docker compose exec backend python -m app.scripts.seed_demo_user
+```
+
+ログイン名は `demo@example.com` または `demo_walker`、パスワードは `DemoWalk123!` です。
 
 DBは `postgis/postgis:18-3.6`。既存のPostgreSQL 18ボリュームを継続利用します。初回のイメージ切り替え前に重要なデータをバックアップしてください。`down -v` は不要です。公式イメージのamd64版を使うためApple Siliconではエミュレーション動作です。
 
@@ -31,6 +39,8 @@ python -m uvicorn app.main:app --env-file .env --reload --no-access-log
 ## 認証とAPI
 
 `POST /auth/register` で登録し、`POST /auth/login` にフォーム形式の `username`（メールまたはニックネーム）と `password` を渡します。返されたトークンを `Authorization: Bearer <token>` に設定します。`/docs` のAuthorizeも利用できます。JWTの有効期限は `ACCESS_TOKEN_EXPIRE_MINUTES`（初期値30分）。
+
+開発中は `test@example.com` のような `@example.com` の架空アドレスで新規登録できます。確認メールやメール所有者の検証は行いません。メールアドレスとニックネームには一意制約があり、登録済みの値は再利用できません。
 
 | API | 内容 |
 | --- | --- |
