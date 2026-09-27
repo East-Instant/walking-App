@@ -6,9 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app import models
 from app.routers import auth
+from app.routers import auth, walks
 
 # DB内にテーブルが存在しない場合、models.py の定義に基づいて自動作成
-Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Walking App API")
 
@@ -26,6 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(walks.router)
 
 
 @app.get("/health")
