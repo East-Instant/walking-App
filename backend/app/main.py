@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import models
 from app.database import engine
 from app.pins.router import router as pins_router
 from app.photos.router import router as photos_router
@@ -12,11 +13,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.routers import auth
+from app.routers import auth, walks
 
+# DB内にテーブルが存在しない場合、models.py の定義に基づいて自動作成
+models.Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
 async def lifespan(app):
-    if len(SECRET_KEY) < 32 or SECRET_KEY in {'your-super-secret-key-change-this-in-production', 'inou-network-super-secret-key-change-this'}:
+    if len(SECRET_KEY) < 32 or SECRET_KEY in {'your-super-secret-key-change-this-in-production'}:
         raise RuntimeError('SECRET_KEY に32文字以上のランダムな秘密鍵を設定してください')
     try:
         yield
@@ -55,6 +59,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(walks.router)
 app.include_router(pins_router)
 app.include_router(photos_router)
 
