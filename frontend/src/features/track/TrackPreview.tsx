@@ -1,41 +1,82 @@
-// 軌跡担当の確認用画面：「開始」を押すと、歩いた軌跡がリアルタイムで描かれる
 import { Redirect, router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { usePreventRemove } from 'expo-router/react-navigation';
+import { useEffect, useState } from 'react';
+import { Button, Platform, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuthSession } from '../../../auth/session';
 import ZoomableWalkCanvas from './ZoomableWalkCanvas';
-import { mockWalks, type Walk } from './mockWalks';
-import { useLiveWalk } from './useLiveWalk';
+import { useWalkRecorder } from './useWalkRecorder';
 
 export default function TrackPreview() {
-  const { token, user, logout } = useAuthSession();
-  const [isWalking, setIsWalking] = useState(false);
-  const [startedAt] = useState(() => new Date().toISOString());
-  const { points, current } = useLiveWalk(isWalking);
+  const { token, user } = useAuthSession();
+  if (!token || !user) return <Redirect href="/login" />;
+  return <TrackScreen key={user.id} token={token} />;
+}
 
-  // 過去の散歩（今はダミー）＋ 今歩いている散歩 を同じキャンバスに重ねる
-  const walks = useMemo<Walk[]>(
-    () => (points.length > 0 ? [...mockWalks, { id: 'live', startedAt, points }] : mockWalks),
-    [points, startedAt]
-  );
+function TrackScreen({ token }: { token: string }) {
+  const { user, login, logout } = useAuthSession();
+  const recorder = useWalkRecorder(token);
+  const [navigationMessage, setNavigationMessage] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+  usePreventRemove(recorder.locked, () => {
+    setNavigationMessage('散歩を終了して保存してから画面を移動してください。');
+  });
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !recorder.locked) return;
+    const guard = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', guard);
+    return () => window.removeEventListener('beforeunload', guard);
+  }, [recorder.locked]);
 
-  if (!token) return <Redirect href="/login" />;
+  const reauthenticate = async () => {
+    if (!user || loggingIn) return;
+    setLoggingIn(true);
+    setLoginError('');
+    try {
+      await login(user.email, password);
+      setPassword('');
+      recorder.authenticated();
+    } catch (err) { setLoginError(err instanceof Error ? err.message : 'ログインできませんでした。'); }
+    finally { setLoggingIn(false); }
+  };
+
+  const status = recorder.phase === 'recording'
+    ? `記録中：${recorder.count} 点（未保存 ${recorder.pending} 点）`
+    : recorder.phase === 'starting' ? '散歩を開始しています…'
+      : recorder.phase === 'startFailed' ? '開始結果を確認できませんでした。再試行してください。'
+        : recorder.phase === 'pending' ? (recorder.busy ? '保存中…' : '保存待ち')
+          : '散歩を始めると足跡が記録されます';
 
   return (
     <SafeAreaView style={styles.root}>
-      <ZoomableWalkCanvas walks={walks} current={current} />
+      <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} />
       <View style={styles.panel}>
-        <Text style={styles.account}>{user ? `${user.username} でログイン中` : 'ログイン中'}</Text>
-        <Text style={styles.status}>
-          {isWalking ? `記録中：${points.length} 点` : '停止中'}
-        </Text>
-        <Button
-          title={isWalking ? '散歩を終える' : '散歩を始める'}
-          onPress={() => setIsWalking((v) => !v)}
-        />
+        <Text>{user?.username} でログイン中</Text>
+        {recorder.loading && <Text>履歴を読み込み中…</Text>}
+        {!!recorder.historyError && <><Text style={styles.error}>{recorder.historyError}</Text><Button title="履歴を再読み込み" onPress={() => void recorder.reload()} disabled={recorder.loading || recorder.locked || recorder.needsLogin} /></>}
+        {!recorder.loading && !recorder.historyError && !recorder.walks.length && <Text>まだ散歩の記録がありません</Text>}
+        <Text accessibilityLiveRegion="polite">{status}</Text>
+        {recorder.phase === 'recording' && recorder.busy && <Text>足跡を保存中…</Text>}
+        {!!recorder.error && <Text style={styles.error}>{recorder.error}</Text>}
+        {!!navigationMessage && recorder.locked && <Text>{navigationMessage}</Text>}
+        {recorder.needsLogin ? <>
+          <Text>記録を保持しています。{user?.email} のパスワードで再ログインしてください。</Text>
+          <TextInput accessibilityLabel="再ログイン用パスワード" style={styles.input} secureTextEntry value={password} onChangeText={setPassword} autoCapitalize="none" placeholder="パスワード" />
+          {!!loginError && <Text style={styles.error}>{loginError}</Text>}
+          <Button title="再ログイン" disabled={loggingIn || !password} onPress={() => void reauthenticate()} />
+        </> : <>
+          <Button
+            title={recorder.phase === 'pending' ? '記録を保存する' : recorder.phase === 'recording' ? '散歩を終える' : recorder.phase === 'startFailed' ? '開始を再試行' : '散歩を始める'}
+            disabled={recorder.busy}
+            onPress={() => void (recorder.phase === 'recording' || recorder.phase === 'pending' ? recorder.finish() : recorder.start())}
+          />
+          {recorder.phase === 'recording' && !!recorder.error && <Button title="保存を再試行" disabled={recorder.busy} onPress={() => void recorder.retrySave()} />}
+        </>}
+        <Text style={styles.note}>アプリを開いている間に記録します。保存完了まではアプリを終了しないでください。</Text>
         <View style={styles.actions}>
-          <Button title="写真を見る" onPress={() => router.push('/photos')} />
-          <Button title="ログアウト" color="#8B3A32" onPress={() => { logout(); router.replace('/login'); }} />
+          <Button title="写真を見る" disabled={recorder.locked} onPress={() => router.push('/photos')} />
+          <Button title="ログアウト" disabled={recorder.locked} color="#8B3A32" onPress={() => { logout(); router.replace('/login'); }} />
         </View>
       </View>
     </SafeAreaView>
@@ -45,7 +86,8 @@ export default function TrackPreview() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   panel: { padding: 16, gap: 8, alignItems: 'center' },
-  account: { fontSize: 13, color: '#246B4C', fontWeight: '600' },
-  status: { fontSize: 14 },
   actions: { flexDirection: 'row', gap: 12 },
+  error: { color: '#A12A26' },
+  note: { fontSize: 12, color: '#555' },
+  input: { borderWidth: 1, borderColor: '#aaa', borderRadius: 8, padding: 10, width: '100%' },
 });

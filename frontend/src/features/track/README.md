@@ -1,93 +1,51 @@
-# track — 散歩の軌跡表示
+# track — 散歩の足跡とAPI接続
 
-`expo-location` で取得した GPS の緯度経度を画面上の座標に変換し、歩いた軌跡を SVG で描く機能です。
-ピンチ・ドラッグ・ボタンで地図の拡大縮小と移動ができます。
+ログイン中のユーザーの履歴を `/walks/me` から取得し、GPSで歩いた軌跡を描画・保存します。
+ダミーデータは計算確認用の `check.ts` だけで使います。
+
+## 動作
+
+1. 画面を開くと保存済みの散歩を読み込みます。空・読み込み中・失敗時の再試行を表示します。
+2. 開始時に位置情報の権限とサービスを確認し、`/walks/start` で散歩を作成します。
+3. 精度25m以内の点を即時描画します。10秒ごとに未保存分を最大500点ずつ送信します。
+4. 終了時はGPSを停止し、残りの座標の送信成功後に `/finish` を呼びます。
+5. 通信失敗時は記録をメモリに保持します。終了できなければ「記録を保存する」で再試行します。
+6. 401時は同じアカウントのパスワードで画面内から再ログインできます。未保存分を維持します。
+
+記録中・開始結果の確認待ち・保存待ちは写真画面への移動とログアウトを無効化し、戻る操作を抑止します。
+Webのリロード・タブを閉じる操作にはブラウザー標準の確認を要求します（ブラウザー依存）。
+バックグラウンド記録、強制終了・リロード後の未送信データ復元は対象外です。
+サーバーに送信済みの点は再ログイン後も表示できます。中断した散歩を自動再開する機能はありません。
 
 ## 構成
 
-処理を **計算 → 描画 → 操作** の3層に分けています。
-下の層ほど React や画面に依存しないため、他の画面や機能から再利用しやすくなっています。
+| ファイル | 役割 |
+| --- | --- |
+| `TrackPreview.tsx` | 足跡画面、状態表示、再ログイン、画面移動の保護 |
+| `useWalkRecorder.ts` | 開始・定期送信・終了・再試行・履歴を管理 |
+| `useLiveWalk.ts` | 権限確認、GPS購読、取得時刻の付与、停止・購読の後処理 |
+| `PointQueue.ts` | 未保存分の保持、500点単位の直列送信、成功分だけ送信済みにする処理 |
+| `api.ts` | 共通APIクライアントを使った認証付き通信 |
+| `types.ts` | API形式と描画形式の型・変換 |
+| `ZoomableWalkCanvas.tsx` / `useMapGesture.ts` | ピンチ・ドラッグ・ボタンによる表示操作 |
+| `WalkCanvas.tsx` | SVGで軌跡と現在地を描画 |
+| `project.ts` / `viewport.ts` | 座標変換、表示範囲、ズームの計算 |
+| `mockWalks.ts` / `check.ts` | 描画計算を確認するためのダミーデータ・簡易チェック |
 
-```
-TrackPreview.tsx           確認用の画面（散歩の開始／終了）
- ├─ useLiveWalk.ts         GPS から現在地と軌跡の点を受け取る
- └─ ZoomableWalkCanvas.tsx 【操作】地図 + ＋／－／全体ボタン
-     ├─ useMapGesture.ts   【操作】ピンチ・ドラッグ・ボタン → 表示状態
-     └─ WalkCanvas.tsx     【描画】与えられた表示状態のとおりに軌跡を描く
-         ├─ project.ts     【計算】緯度経度 → 画面座標、SVG パス文字列の生成
-         └─ viewport.ts    【計算】ズーム倍率・移動量の計算
-```
+通常は全体を自動表示します。手動で拡大・移動すると範囲を固定し、「全体」で自動表示に戻ります。
+背景地図のタイル表示は含まず、既存のSVG描画を利用します。
 
-## ファイルごとの役割
+## 検証
 
-### 計算（React に依存しない純粋な関数）
+`frontend` で実行します。Node.js 24を使用してください。
 
-| ファイル | 主な関数・型 | 内容 |
-|---|---|---|
-| `project.ts` | `LatLng`, `Point`, `Bounds` | 緯度経度、画面座標、表示範囲の型 |
-| | `computeBounds(points)` | 全ての点を囲む範囲を求める |
-| | `collectPoints(walks, current)` | 全散歩の座標と現在地を1つの配列にまとめる |
-| | `createProjector(bounds, width, height, padding, viewport)` | 緯度経度 → 画面の x,y に変換する関数を作る。経度を cos(緯度) で補正し、縦横比を保って中央に収める。`viewport` を渡すとズーム・移動を反映する |
-| | `toPathD` / `toSmoothPathD` | 座標列を SVG の `<Path d="...">` 文字列にする（折れ線／なめらかな曲線） |
-| `viewport.ts` | `Viewport` | `{ zoom, panX, panY }`。全体表示を `zoom: 1` とした拡大率と、画面上の移動量（px） |
-| | `zoomAt(v, factor, focal, w, h)` | 指定した画面上の点（ピンチの中心など）を動かさずに拡大・縮小する。倍率は `MIN_ZOOM`〜`MAX_ZOOM`（0.5〜20）に制限 |
-| | `panBy(v, dx, dy)` | 地図を dx, dy だけ移動する |
-| | `applyViewport(p, v, w, h)` | 全体表示での座標にズーム・移動を適用する |
-
-### 描画
-
-| ファイル | 内容 |
-|---|---|
-| `WalkCanvas.tsx` | 散歩の軌跡と現在地を SVG で描くコンポーネント。ズームの状態は持たず、props の `bounds`（基準の範囲）と `viewport`（ズーム・移動）のとおりに描く。どちらも省略すると全体表示になるため、サムネイルなど操作不要な場所でもそのまま使える |
-
-主な props：`walks`（散歩の配列）、`current`（現在地）、`showPoints`（各座標を点で表示する確認用）、`bounds`、`viewport`
-
-### 操作
-
-| ファイル | 内容 |
-|---|---|
-| `useMapGesture.ts` | タッチ操作とボタン操作を受けて表示状態を管理するフック。1本指で移動、2本指でピンチ拡大・縮小 |
-| `ZoomableWalkCanvas.tsx` | `WalkCanvas` にタッチ操作と「＋ / － / 全体」ボタンを付けたコンポーネント。props は `WalkCanvas` と同じ（`bounds` / `viewport` を除く） |
-
-**表示モードについて**
-
-- 何も操作していない間は **自動で全体表示** になります。新しい点が増えるたびに全体が収まるよう調整されます。
-- 拡大・移動した時点でその範囲を固定します。歩いても画面が勝手に動きません。
-- 「全体」ボタン（操作後にだけ表示）で自動の全体表示に戻ります。
-- 座標変換の段階でズームを反映しているため、拡大しても線の太さは変わりません。
-
-### データ取得
-
-| ファイル | 内容 |
-|---|---|
-| `useLiveWalk.ts` | `useLiveWalk(active)`：`active` が true の間、位置情報の許可を求めて現在地を受け取り続ける。`current`（現在地）は常に更新し、精度が 25m 以内の点だけを `points`（軌跡）に追加する。5m 移動ごと（Android は最短2秒間隔）に通知される |
-| `mockWalks.ts` | `Walk` 型（`id`, `startedAt`, `points`）とダミーの過去の散歩データ。本番では API から取得したデータに置き換える |
-
-### 確認用
-
-| ファイル | 内容 |
-|---|---|
-| `TrackPreview.tsx` | 動作確認用の画面。「散歩を始める」を押すと、過去の散歩（ダミー）に重ねて今歩いている軌跡がリアルタイムで描かれる。`src/app/track.tsx` から表示している |
-| `check.ts` | 計算部分の簡易テスト。全ての点が画面内に収まるか、北が上になっているか、ズームの中心が動かないか、倍率が上限で止まるかを確認する |
-
-## 使い方の例
-
-```tsx
-// src/app/ の画面から使う場合
-import ZoomableWalkCanvas from "../features/track/ZoomableWalkCanvas";
-import { useLiveWalk } from "../features/track/useLiveWalk";
-
-const { points, current } = useLiveWalk(isWalking);
-
-<ZoomableWalkCanvas
-  walks={[{ id: "live", startedAt, points }]}
-  current={current}
-/>
+```sh
+npm run typecheck
+npm run lint
+node --test tests/walk-queue.test.mjs
+npx expo export --platform web
 ```
 
-## 依存パッケージ
-
-- `expo-location`：位置情報の取得
-- `react-native-svg`：軌跡の描画
-
-タッチ操作には React Native 標準のレスポンダー機能を使っているため、ジェスチャー用の追加ライブラリは不要です。
+実機確認項目：位置情報の許可・拒否、GPS停止、2回続けて散歩、通信切断後の再送、
+保存中の戻る操作、ログイン期限切れから再認証、終了後の再ログインで足跡を表示。
+バックエンドのDB移行・API仕様は `backend/WALKS.md` を参照してください。

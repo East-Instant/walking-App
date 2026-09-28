@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, AwareDatetime, ConfigDict
 
 class UserRegisterRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=50)
@@ -20,31 +20,30 @@ class UserResponse(BaseModel):
     email: str
 
 class LocationPointBase(BaseModel):
-    latitude: float = Field(..., description="緯度", example=35.681236)
-    longitude: float = Field(..., description="経度", example=139.767125)
+    latitude: float = Field(ge=-90, le=90, allow_inf_nan=False)
+    longitude: float = Field(ge=-180, le=180, allow_inf_nan=False)
 
 class LocationPointCreate(LocationPointBase):
-    pass
+    sequence: int = Field(ge=0, le=2147483647, strict=True)
+    recorded_at: AwareDatetime
 
-class LocationPointResponse(LocationPointBase):
+class LocationPointResponse(LocationPointCreate):
     id: UUID
-    recorded_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class WalkLogCreate(BaseModel):
-    pass
+    client_request_id: UUID
+
+class WalkLogFinish(BaseModel):
+    ended_at: AwareDatetime
 
 class WalkLogBulkLocationCreate(BaseModel):
-    locations: List[LocationPointCreate]
+    locations: List[LocationPointCreate] = Field(min_length=1, max_length=500)
 
 class WalkLogResponse(BaseModel):
     id: UUID
     user_id: UUID
     started_at: datetime
     ended_at: Optional[datetime] = None
-    locations: List[LocationPointResponse] = []
-
-    class Config:
-        from_attributes = True
+    locations: List[LocationPointResponse] = Field(default_factory=list, validation_alias="location_points")
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

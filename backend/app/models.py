@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, DateTime, Float, ForeignKey, String
+from sqlalchemy import Column, DateTime, Float, ForeignKey, String, Integer, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -19,6 +19,9 @@ class User(Base):
 
 class WalkLog(Base):
     __tablename__ = "walk_logs"
+    __table_args__ = (UniqueConstraint("user_id", "client_request_id", name="uq_walk_request"),)
+
+    client_request_id = Column(UUID(as_uuid=True), nullable=True)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
@@ -31,6 +34,9 @@ class WalkLog(Base):
 
 class LocationPoint(Base):
     __tablename__ = "location_points"
+    __table_args__ = (UniqueConstraint("walk_log_id", "sequence", name="uq_walk_sequence"),)
+
+    sequence = Column(Integer, nullable=False)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     walk_log_id = Column(UUID(as_uuid=True),ForeignKey("walk_logs.id"),nullable=False,index=True,)

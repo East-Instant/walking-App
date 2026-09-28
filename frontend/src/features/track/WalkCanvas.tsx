@@ -5,7 +5,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { collectPoints, computeBounds, createProjector, toSmoothPathD } from "./project";
 import type { Bounds, LatLng } from "./project";
 import type { Viewport } from "./viewport";
-import type { Walk } from "./mockWalks";
+import type { Walk } from "./types";
 
 export type WalkCanvasProps = {
   walks: Walk[];
