@@ -152,3 +152,30 @@ def test_storage_failure_does_not_create_row(photos, monkeypatch):
     assert result.status_code == 503
     assert 'private disk detail' not in result.text
     assert client.get(f'/pins/{pin_id}/photos', headers=owner).json() == []
+
+
+def test_create_place_take_photo_and_finish_walk(photos):
+    """A photo roundtrip during a walk must retain both the track and the place."""
+    from datetime import datetime, timezone
+    client, (owner, _), _, _ = photos
+    walk = client.post('/walks/start', headers=owner, json={'client_request_id': str(uuid4())}).json()
+    walk_path = '/walks/' + walk['id']
+    location = {'latitude': 35.6812, 'longitude': 139.7671, 'sequence': 0,
+                'recorded_at': datetime.now(timezone.utc).isoformat()}
+    assert client.post(walk_path + '/locations', headers=owner, json={'locations': [location]}).status_code == 201
+    draft = payload(title='川沿いのベンチ', memo='撮影した場所')
+    pin = client.post('/pins', headers=owner, json=draft).json()
+    # Lost create response: retry returns the exact same place used for the photo.
+    assert client.post('/pins', headers=owner, json=draft).json()['id'] == pin['id']
+    request_id = uuid4()
+    photo = upload(client, owner, pin['id'], request_id=request_id).json()
+    assert upload(client, owner, pin['id'], request_id=request_id).json()['id'] == photo['id']
+    assert client.get(f'/pins/{pin["id"]}/photos', headers=owner).json() == [photo]
+    image = client.get(f'/pins/{pin["id"]}/photos/{photo["id"]}', headers=owner)
+    assert image.status_code == 200 and image.headers['content-type'] == 'image/jpeg'
+    second = location | {'sequence': 1, 'latitude': 35.682}
+    assert client.post(walk_path + '/locations', headers=owner, json={'locations': [second]}).status_code == 201
+    finished = client.post(walk_path + '/finish', headers=owner, json={'ended_at': datetime.now(timezone.utc).isoformat()})
+    assert finished.status_code == 200
+    assert [p['sequence'] for p in finished.json()['locations']] == [0, 1]
+    assert client.get(f'/pins/{pin["id"]}/photos', headers=owner).json() == [photo]

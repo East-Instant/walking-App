@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { request } from '../api/client';
+import type { PinCreate } from './pinDraft';
 
 export { ApiError, apiUrl, request } from '../api/client';
 export type Photo = { id: string; pin_id: string; width: number; height: number; byte_size: number; created_at: string };
@@ -18,4 +19,10 @@ export async function uploadPhoto(pinId: string, token: string, photo: PendingPh
     form.append('file', { uri: photo.uri, name: 'photo.jpg', type: 'image/jpeg' } as unknown as Blob);
   }
   return (await request(`/pins/${encodeURIComponent(pinId)}/photos`, token, { method: 'POST', body: form })).json();
+}
+
+export async function createPin(token: string, data: Readonly<PinCreate>): Promise<Pin> {
+  return (await request('/pins', token, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })).json();
 }

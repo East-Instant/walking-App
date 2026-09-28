@@ -14,13 +14,12 @@ export function PrivatePhoto({ photo, enlarged = false }: { photo: Photo; enlarg
     let active = true;
     const controller = new AbortController();
     const reader = new FileReader();
-    setUri(null); setError(false);
     void (async () => {
       try {
         const response = await request(`/pins/${photo.pin_id}/photos/${photo.id}`, token, { signal: controller.signal });
         const blob = await response.blob();
         if (!active) return;
-        reader.onload = () => { if (active) setUri(String(reader.result)); };
+        reader.onload = () => { if (active) { setUri(String(reader.result)); setError(false); } };
         reader.onerror = () => { if (active) setError(true); };
         reader.readAsDataURL(blob);
       } catch (err) {
@@ -32,7 +31,7 @@ export function PrivatePhoto({ photo, enlarged = false }: { photo: Photo; enlarg
     return () => { active = false; controller.abort(); if (reader.readyState === 1) reader.abort(); };
   }, [photo.pin_id, photo.id, token, logout, retry]);
   return <View style={[enlarged ? styles.preview : styles.thumb, { alignItems: 'center', justifyContent: 'center' }]}>
-    {error ? <><Text style={styles.error}>読み込めませんでした</Text><Action title="再読み込み" secondary onPress={() => setRetry(retry + 1)} /></>
+    {error ? <><Text style={styles.error}>読み込めませんでした</Text><Action title="再読み込み" secondary onPress={() => { setUri(null); setError(false); setRetry(retry + 1); }} /></>
       : uri ? <Image accessibilityLabel="ピンに保存した写真" source={{ uri }} style={{ width: '100%', height: '100%' }} resizeMode={enlarged ? 'contain' : 'cover'} onError={() => setError(true)} />
         : <ActivityIndicator color="#246B4C" />}
   </View>;

@@ -12,6 +12,12 @@
           "cameraPermission": "お気に入りの場所の写真を撮影します。",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "散歩の足跡を記録し、写真を残す場所を保存するために現在地を使います。"
+        }
       ]
     ],
     "version": "1.0.0",

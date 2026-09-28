@@ -1,11 +1,6 @@
 // ダミーの散歩データ（本番では API から取得したデータに置き換える）
-import type { LatLng } from "./project";
-
-export type Walk = {
-  id: string;
-  startedAt: string; // ISO 8601
-  points: LatLng[];
-};
+import type { Walk } from './types';
+export type { Walk } from './types';
 
 export const mockWalks: Walk[] = [
   {

@@ -1,12 +1,16 @@
 import { router } from 'expo-router';
-import type { PropsWithChildren } from 'react';
+import { createContext, useContext, type PropsWithChildren } from 'react';
 import { Text } from 'react-native';
 import { useAuthSession } from '../auth/session';
 import { Action, PhotoPage, styles } from './ui';
 
+// Keep the walk and pending photo mounted when authentication expires in the overlay.
+export const PhotoSessionBoundary = createContext<{ onExpired: () => void; suspended: boolean } | null>(null);
+
 export function usePhotoSession() {
   const { token, logout } = useAuthSession();
-  return { token, logout };
+  const boundary = useContext(PhotoSessionBoundary);
+  return { token, logout: boundary?.onExpired ?? logout, suspended: boundary?.suspended ?? false };
 }
 export function PhotoAccess({ children }: PropsWithChildren) {
   const { token } = useAuthSession();
