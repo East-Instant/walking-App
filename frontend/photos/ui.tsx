@@ -16,6 +16,7 @@ export function Action({ title, onPress, disabled, busy, secondary, danger }: { 
 export const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F3F6F0' }, page: { flexGrow: 1, padding: 20, alignItems: 'center' },
   content: { width: '100%', maxWidth: 640, gap: 18, paddingVertical: 12 },
+  input: { borderWidth: 1, borderColor: '#BBCBBC', borderRadius: 12, padding: 14, color: '#203C2D', backgroundColor: 'white', fontSize: 16 },
   title: { fontSize: 28, fontWeight: '700', color: '#203C2D' }, subtitle: { fontSize: 16, fontWeight: '600', color: '#203C2D' },
   body: { color: '#586D5F', fontSize: 14, lineHeight: 23 }, muted: { color: '#66766C', fontSize: 12, lineHeight: 19 },
   card: { backgroundColor: 'white', borderWidth: 1, borderColor: '#DFE7DC', padding: 20, borderRadius: 20, gap: 16 },

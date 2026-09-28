@@ -3,6 +3,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 import { useEffect, useState } from 'react';
 import { Button, Platform, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuthSession } from '../../../auth/session';
+import { NewPlacePhotoModal } from '../../../photos/NewPlacePhotoModal';
 import ZoomableWalkCanvas from './ZoomableWalkCanvas';
 import { useWalkRecorder } from './useWalkRecorder';
 
@@ -15,6 +16,7 @@ export default function TrackPreview() {
 function TrackScreen({ token }: { token: string }) {
   const { user, login, logout } = useAuthSession();
   const recorder = useWalkRecorder(token);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const [navigationMessage, setNavigationMessage] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -74,11 +76,13 @@ function TrackScreen({ token }: { token: string }) {
           {recorder.phase === 'recording' && !!recorder.error && <Button title="保存を再試行" disabled={recorder.busy} onPress={() => void recorder.retrySave()} />}
         </>}
         <Text style={styles.note}>アプリを開いている間に記録します。保存完了まではアプリを終了しないでください。</Text>
+        <Button title="この場所に写真を残す" disabled={recorder.phase === 'starting' || recorder.phase === 'startFailed' || recorder.needsLogin} onPress={() => setPhotoOpen(true)} />
         <View style={styles.actions}>
           <Button title="写真を見る" disabled={recorder.locked} onPress={() => router.push('/photos')} />
           <Button title="ログアウト" disabled={recorder.locked} color="#8B3A32" onPress={() => { logout(); router.replace('/login'); }} />
         </View>
       </View>
+      {photoOpen && <NewPlacePhotoModal onClose={() => setPhotoOpen(false)} reauthRequired={recorder.needsLogin} onAuthenticated={recorder.authenticated} />}
     </SafeAreaView>
   );
 }
