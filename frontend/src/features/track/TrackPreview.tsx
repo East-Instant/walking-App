@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthSession } from '../../../auth/session';
 import { NewPlacePhotoModal } from '../../../photos/NewPlacePhotoModal';
 import ZoomableWalkCanvas from './ZoomableWalkCanvas';
+import { usePlacePins } from './usePlacePins';
 import { useWalkRecorder } from './useWalkRecorder';
 
 export default function TrackPreview() {
@@ -17,6 +18,8 @@ export default function TrackPreview() {
 function TrackScreen({ token }: { token: string }) {
   const { user, login, logout } = useAuthSession();
   const recorder = useWalkRecorder(token);
+  const placePins = usePlacePins(token);
+  const [showPins, setShowPins] = useState(true);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [navigationMessage, setNavigationMessage] = useState('');
   const [password, setPassword] = useState('');
@@ -53,7 +56,7 @@ function TrackScreen({ token }: { token: string }) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} />
+      <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} pins={showPins ? placePins.pins : undefined} />
       <View style={styles.panel}>
         <Text>{user?.username} でログイン中</Text>
         {recorder.loading && <Text>履歴を読み込み中…</Text>}
@@ -77,13 +80,22 @@ function TrackScreen({ token }: { token: string }) {
           {recorder.phase === 'recording' && !!recorder.error && <Button title="保存を再試行" disabled={recorder.busy} onPress={() => void recorder.retrySave()} />}
         </>}
         <Text style={styles.note}>アプリを開いている間に記録します。保存完了まではアプリを終了しないでください。</Text>
-        <Button title="この場所に写真を残す" disabled={recorder.phase === 'starting' || recorder.phase === 'startFailed' || recorder.needsLogin} onPress={() => setPhotoOpen(true)} />
+        <View style={styles.actions}>
+          <Button title="この場所に写真を残す" disabled={recorder.phase === 'starting' || recorder.phase === 'startFailed' || recorder.needsLogin} onPress={() => setPhotoOpen(true)} />
+          <Button
+            title={showPins ? '写真の場所を隠す' : '写真の場所を表示'}
+            accessibilityLabel={showPins ? '地図上の写真の場所を隠す' : '地図上に写真の場所を表示'}
+            color="#B7791F"
+            onPress={() => setShowPins(v => !v)}
+          />
+        </View>
+        {showPins && !!placePins.error && <Text style={styles.error}>{placePins.error}</Text>}
         <View style={styles.actions}>
           <Button title="写真を見る" disabled={recorder.locked} onPress={() => router.push('/photos')} />
           <Button title="ログアウト" disabled={recorder.locked} color="#8B3A32" onPress={() => { logout(); router.replace('/login'); }} />
         </View>
       </View>
-      {photoOpen && <NewPlacePhotoModal onClose={() => setPhotoOpen(false)} reauthRequired={recorder.needsLogin} onAuthenticated={recorder.authenticated} />}
+      {photoOpen && <NewPlacePhotoModal onClose={() => { setPhotoOpen(false); placePins.reload(); }} reauthRequired={recorder.needsLogin} onAuthenticated={recorder.authenticated} />}
     </SafeAreaView>
   );
 }
@@ -91,7 +103,7 @@ function TrackScreen({ token }: { token: string }) {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   panel: { padding: 16, gap: 8, alignItems: 'center' },
-  actions: { flexDirection: 'row', gap: 12 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 },
   error: { color: '#A12A26' },
   note: { fontSize: 12, color: '#555' },
   input: { borderWidth: 1, borderColor: '#aaa', borderRadius: 8, padding: 10, width: '100%' },
