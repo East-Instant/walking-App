@@ -27,12 +27,13 @@ export function computeBounds(points: LatLng[]): Bounds {
   return { minLat, maxLat, minLng, maxLng };
 }
 
-/** 全散歩の座標と現在地を1つの配列にまとめる（範囲計算用） */
+/** 全散歩の座標・現在地・ピンを1つの配列にまとめる（範囲計算用） */
 export function collectPoints(
   walks: { points: LatLng[] }[],
-  current: LatLng | null = null
+  current: LatLng | null = null,
+  pins: LatLng[] = []
 ): LatLng[] {
-  return walks.flatMap((w) => w.points).concat(current ? [current] : []);
+  return walks.flatMap((w) => w.points).concat(current ? [current] : [], pins);
 }
 
 /**

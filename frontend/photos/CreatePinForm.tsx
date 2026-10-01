@@ -52,7 +52,7 @@ export function CreatePinForm({ onSaved, onClose, onCloseBlockedChange }: {
 
   return <PhotoPage>
     <Action title="閉じる" secondary disabled={busy !== null} onPress={onClose} />
-    <Text accessibilityRole="header" style={styles.title}>この場所に写真を残す</Text>
+    <Text accessibilityRole="header" style={styles.title}>この場所を記録する</Text>
     <Text style={styles.body}>現在地と場所の名前を保存すると、写真を撮ったり選んだりできます。</Text>
     <View style={styles.card}>
       <Text style={styles.subtitle}>1. 場所を確認</Text>

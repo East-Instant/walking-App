@@ -8,8 +8,8 @@ import { useMapGesture } from "./useMapGesture";
 
 type Props = Omit<WalkCanvasProps, "bounds" | "viewport">;
 
-export default function ZoomableWalkCanvas({ walks, current = null, showPoints }: Props) {
-  const points = useMemo(() => collectPoints(walks, current), [walks, current]);
+export default function ZoomableWalkCanvas({ walks, current = null, showPoints, pins, onPinPress }: Props) {
+  const points = useMemo(() => collectPoints(walks, current, pins), [walks, current, pins]);
   const viewRef = useRef<View>(null);
   const map = useMapGesture(points, viewRef);
 
@@ -27,6 +27,8 @@ export default function ZoomableWalkCanvas({ walks, current = null, showPoints }
           showPoints={showPoints}
           bounds={map.bounds}
           viewport={map.viewport}
+          pins={pins}
+          onPinPress={onPinPress}
         />
       </View>
 

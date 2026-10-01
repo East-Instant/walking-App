@@ -1,11 +1,11 @@
 // 散歩の軌跡を SVG で描くコンポーネント
 import React, { useMemo, useState } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle, G, Path } from "react-native-svg";
 import { collectPoints, computeBounds, createProjector, toSmoothPathD } from "./project";
 import type { Bounds, LatLng } from "./project";
 import type { Viewport } from "./viewport";
-import type { Walk } from "./types";
+import type { PlacePin, Walk } from "./types";
 
 export type WalkCanvasProps = {
   walks: Walk[];
@@ -13,10 +13,14 @@ export type WalkCanvasProps = {
   showPoints?: boolean; // true にすると各座標を点で表示（動作確認用）
   bounds?: Bounds; // 表示の基準にする範囲。省略時は全ての点が収まる範囲を自動計算
   viewport?: Viewport; // 拡大率・移動量。省略時は全体表示
+  pins?: PlacePin[]; // 写真を残した場所。渡したものだけをピンで表示
+  onPinPress?: (pin: PlacePin) => void; // ピンをタップしたとき
 };
 
 const LINE_COLOR = "#39FF14";
 const BG_COLOR = "#0E1116";
+export const PIN_COLOR = "#FFB020";
+const NO_PINS: PlacePin[] = []; // 毎回新しい配列にならないよう固定
 
 export default function WalkCanvas({
   walks,
@@ -24,6 +28,8 @@ export default function WalkCanvas({
   showPoints = false,
   bounds,
   viewport,
+  pins = NO_PINS,
+  onPinPress,
 }: WalkCanvasProps) {
   // 親から与えられた実際の描画サイズを取得する
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -33,10 +39,10 @@ export default function WalkCanvas({
   };
 
   // サイズか散歩データ・現在地が変わったときだけ再計算
-  const { paths, currentXY } = useMemo(() => {
-    // 現在地も範囲計算に含める（精度待ちで points に未反映でも画面内に収まるように）
-    const all = collectPoints(walks, current);
-    if (size.width === 0 || all.length === 0) return { paths: [], currentXY: null };
+  const { paths, currentXY, pinXYs } = useMemo(() => {
+    // 現在地とピンも範囲計算に含める（精度待ちで points に未反映でも画面内に収まるように）
+    const all = collectPoints(walks, current, pins);
+    if (size.width === 0 || all.length === 0) return { paths: [], currentXY: null, pinXYs: [] };
 
     // 全散歩をまとめた範囲で1つの変換関数を作る → 同じキャンバスに重なる
     const project = createProjector(
@@ -56,9 +62,10 @@ export default function WalkCanvas({
       }));
 
     const currentXY = current ? project(current) : null;
+    const pinXYs = pins.map((pin) => ({ pin, ...project(pin) }));
 
-    return { paths, currentXY };
-  }, [walks, current, size, bounds, viewport]);
+    return { paths, currentXY, pinXYs };
+  }, [walks, current, pins, size, bounds, viewport]);
 
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -83,10 +90,23 @@ export default function WalkCanvas({
               ))
             )}
             {currentXY && <Circle cx={currentXY.x} cy={currentXY.y} r={6} fill="#FFFFFF" stroke={LINE_COLOR} strokeWidth={3} />}
+          {pinXYs.map((p) => (
+            <G key={p.pin.id} onPress={onPinPress && (() => onPinPress(p.pin))}>
+              {/* 指で押しやすいよう、見た目より広い透明な当たり判定を置く */}
+              <Circle cx={p.x} cy={p.y - 14} r={22} fill="transparent" />
+              <Path d={pinShapeD(p.x, p.y)} fill={PIN_COLOR} stroke={BG_COLOR} strokeWidth={1.5} />
+              <Circle cx={p.x} cy={p.y - 16} r={3.5} fill={BG_COLOR} />
+            </G>
+          ))}
         </Svg>
       )}
     </View>
   );
+}
+
+/** 先端が (x, y) を指す、しずく形のピン */
+function pinShapeD(x: number, y: number): string {
+  return `M${x} ${y} C${x - 3} ${y - 6} ${x - 9} ${y - 10} ${x - 9} ${y - 16} A9 9 0 1 1 ${x + 9} ${y - 16} C${x + 9} ${y - 10} ${x + 3} ${y - 6} ${x} ${y} Z`;
 }
 
 const styles = StyleSheet.create({
