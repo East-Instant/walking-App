@@ -132,7 +132,7 @@ export function Gallery({ pinId, onClose, onCloseBlockedChange }: {
   }
 
   return <PhotoPage>
-    <Action title={onClose ? "閉じる" : "ピン一覧に戻る"} secondary disabled={busy || !!pendingPhoto} onPress={onClose ?? (() => router.replace('/photos'))} />
+    <Action title={onClose ? "閉じる" : "記録一覧に戻る"} secondary disabled={busy || !!pendingPhoto} onPress={onClose ?? (() => router.replace('/photos'))} />
     {!!pendingPhoto && <Text style={styles.muted}>戻る前に、選んだ写真を保存するかキャンセルしてください。</Text>}
     <Text style={styles.muted}>WALKING APP / YOUR MEMORIES</Text>
     <Text accessibilityRole="header" style={styles.title}>{pin?.title ?? 'この場所の写真'}</Text>

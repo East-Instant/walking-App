@@ -27,8 +27,8 @@ function PinList() {
     return () => controller.abort();
   }, [offset, retry, token, logout]);
   return <PhotoPage>
-    <Text style={styles.muted}>WALKING APP / PHOTOS</Text><Text accessibilityRole="header" style={styles.title}>お気に入りの写真</Text>
-    <Text style={styles.body}>写真を残したい場所を選ぶか、新しい場所を追加してください。</Text>
+    <Text style={styles.muted}>WALKING APP / PHOTOS</Text><Text accessibilityRole="header" style={styles.title}>記録一覧</Text>
+    <Text style={styles.body}>ここで今までの記録を確認できます。現在地に新しい記録を残すこともできます。</Text>
     <Action title="現在地に新しい場所を追加" onPress={() => setAdding(true)} />
     {loading ? <ActivityIndicator color="#246B4C" /> : error ? <><Text style={styles.error}>{error}</Text><Action title="再読み込み" onPress={() => { setLoading(true); setError(''); setRetry(retry + 1); }} /></>
       : pins.length === 0 ? <View style={styles.card}><Text style={styles.body}>保存した場所はまだありません。「現在地に新しい場所を追加」から、最初の写真を残せます。</Text></View>
