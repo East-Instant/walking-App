@@ -18,7 +18,7 @@ export type WalkCanvasProps = {
 
 const LINE_COLOR = "#39FF14";
 const BG_COLOR = "#0E1116";
-const PIN_COLOR = "#FFB020";
+export const PIN_COLOR = "#FFB020";
 const NO_PINS: PlacePin[] = []; // 毎回新しい配列にならないよう固定
 
 export default function WalkCanvas({
