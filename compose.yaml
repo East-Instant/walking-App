@@ -51,6 +51,8 @@ services:
       - "8081:8081"
     environment:
       EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:8000}
+      EXPO_PUBLIC_WEB_API_URL: ${EXPO_PUBLIC_WEB_API_URL:-/api}
+      WALKING_API_PROXY_URL: http://backend:8000
       EXPO_NO_TELEMETRY: "1"
       BROWSER: none
     volumes:

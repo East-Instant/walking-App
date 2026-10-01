@@ -1,5 +1,7 @@
 # Walking App 開発環境
 
+> Web版は同じURLの `/api` 経由で通信します。スマホのブラウザ接続・HTTPS・APIポートの設定は [API接続手順](frontend/api/README.md) を参照してください。
+
 > バックエンドに認証・ピンAPI・PostGIS・Alembicを追加しました。DBは空ではなく、API起動にランダムな `SECRET_KEY` が必要です。最新の起動・移行・API・テスト手順は [backend/README.md](backend/README.md) を参照してください。以下の初期構築時の「空のDB」「DB不要」という説明は現在のバックエンドには適用されません。
 
 ## 新規登録・ログイン画面
