@@ -28,3 +28,4 @@ export const toPlacePin = (pin: SavedPin): PlacePin => ({
   lat: pin.latitude,
   lng: pin.longitude,
 });
+export type PinDetail = SavedPin & { memo: string; created_at: string };

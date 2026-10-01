@@ -1,5 +1,6 @@
 import { request } from '../../../api/client';
-import type { PinPage, RecordedPoint, SavedPin, SavedWalk } from './types';
+import type { Photo } from '../../../photos/api';
+import type { PinDetail, PinPage, RecordedPoint, SavedPin, SavedWalk } from './types';
 
 async function post<T>(path: string, token: string, data: unknown): Promise<T> {
   return (await request(path, token, {
@@ -26,3 +27,8 @@ export async function getPins(token: string, signal?: AbortSignal): Promise<Save
   }
   return pins.slice(0, MAX_PINS);
 }
+
+export const getPinDetail = async (token: string, pinId: string, signal?: AbortSignal): Promise<PinDetail> =>
+  (await request(`/pins/${encodeURIComponent(pinId)}`, token, { signal })).json();
+export const getPinPhotos = async (token: string, pinId: string, signal?: AbortSignal): Promise<Photo[]> =>
+  (await request(`/pins/${encodeURIComponent(pinId)}/photos`, token, { signal })).json();

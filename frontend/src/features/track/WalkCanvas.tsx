@@ -14,6 +14,7 @@ export type WalkCanvasProps = {
   bounds?: Bounds; // 表示の基準にする範囲。省略時は全ての点が収まる範囲を自動計算
   viewport?: Viewport; // 拡大率・移動量。省略時は全体表示
   pins?: PlacePin[]; // 写真を残した場所。渡したものだけをピンで表示
+  onPinPress?: (pin: PlacePin) => void; // ピンをタップしたとき
 };
 
 const LINE_COLOR = "#39FF14";
@@ -28,6 +29,7 @@ export default function WalkCanvas({
   bounds,
   viewport,
   pins = NO_PINS,
+  onPinPress,
 }: WalkCanvasProps) {
   // 親から与えられた実際の描画サイズを取得する
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -60,7 +62,7 @@ export default function WalkCanvas({
       }));
 
     const currentXY = current ? project(current) : null;
-    const pinXYs = pins.map((pin) => ({ id: pin.id, ...project(pin) }));
+    const pinXYs = pins.map((pin) => ({ pin, ...project(pin) }));
 
     return { paths, currentXY, pinXYs };
   }, [walks, current, pins, size, bounds, viewport]);
@@ -89,7 +91,9 @@ export default function WalkCanvas({
             )}
             {currentXY && <Circle cx={currentXY.x} cy={currentXY.y} r={6} fill="#FFFFFF" stroke={LINE_COLOR} strokeWidth={3} />}
           {pinXYs.map((p) => (
-            <G key={p.id}>
+            <G key={p.pin.id} onPress={onPinPress && (() => onPinPress(p.pin))}>
+              {/* 指で押しやすいよう、見た目より広い透明な当たり判定を置く */}
+              <Circle cx={p.x} cy={p.y - 14} r={22} fill="transparent" />
               <Path d={pinShapeD(p.x, p.y)} fill={PIN_COLOR} stroke={BG_COLOR} strokeWidth={1.5} />
               <Circle cx={p.x} cy={p.y - 16} r={3.5} fill={BG_COLOR} />
             </G>

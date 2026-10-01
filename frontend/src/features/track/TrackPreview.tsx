@@ -5,6 +5,7 @@ import { Button, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthSession } from '../../../auth/session';
 import { NewPlacePhotoModal } from '../../../photos/NewPlacePhotoModal';
+import PinDetailSheet from './PinDetailSheet';
 import TrackActionButton from './TrackActionButton';
 import { AccountIcon, FootprintsIcon, ListIcon, PinIcon } from './TrackIcons';
 import { PIN_COLOR } from './WalkCanvas';
@@ -26,6 +27,7 @@ function TrackScreen({ token }: { token: string }) {
   const [photoOpen, setPhotoOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [startNoticeOpen, setStartNoticeOpen] = useState(false);
+  const [openPinId, setOpenPinId] = useState<string | null>(null);
   const [navigationMessage, setNavigationMessage] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -74,7 +76,7 @@ function TrackScreen({ token }: { token: string }) {
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.map}>
-        <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} pins={showPins ? placePins.pins : undefined} />
+        <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} pins={showPins ? placePins.pins : undefined} onPinPress={pin => setOpenPinId(pin.id)} />
         <View style={styles.account}>
           <Pressable
             accessibilityRole="button"
@@ -172,6 +174,13 @@ function TrackScreen({ token }: { token: string }) {
           </View>
         </View>
       </Modal>
+      {openPinId && <PinDetailSheet
+        token={token}
+        pinId={openPinId}
+        canOpenList={!recorder.locked}
+        onOpenList={() => { const id = openPinId; setOpenPinId(null); router.push(`/photos/${id}`); }}
+        onClose={() => setOpenPinId(null)}
+      />}
       {photoOpen && <NewPlacePhotoModal onClose={() => { setPhotoOpen(false); placePins.reload(); }} reauthRequired={recorder.needsLogin} onAuthenticated={recorder.authenticated} />}
     </SafeAreaView>
   );
