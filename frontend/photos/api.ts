@@ -1,3 +1,4 @@
+import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
 import { request } from '../api/client';
 import type { PinCreate } from './pinDraft';
@@ -15,8 +16,8 @@ export async function uploadPhoto(pinId: string, token: string, photo: PendingPh
     if (blob.size > 10 * 1024 * 1024) throw new Error('写真は10MB以内にしてください。');
     form.append('file', blob, 'photo.jpg');
   } else {
-    // React Native FormData accepts URI-backed files; browsers use Blob above.
-    form.append('file', { uri: photo.uri, name: 'photo.jpg', type: 'image/jpeg' } as unknown as Blob);
+    // expo/fetch replaces global fetch on native and cannot send `{ uri }` parts; File exposes bytes().
+    form.append('file', new File(photo.uri));
   }
   return (await request(`/pins/${encodeURIComponent(pinId)}/photos`, token, { method: 'POST', body: form })).json();
 }
