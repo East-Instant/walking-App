@@ -1,7 +1,8 @@
 import { Redirect, router } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import { useEffect, useState } from 'react';
-import { Button, Platform, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthSession } from '../../../auth/session';
 import { NewPlacePhotoModal } from '../../../photos/NewPlacePhotoModal';
 import ZoomableWalkCanvas from './ZoomableWalkCanvas';
