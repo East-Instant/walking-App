@@ -24,6 +24,8 @@ export function useLiveWalk() {
     stop();
     setCurrent(null);
     const version = generation.current;
+    // Watching starts with the OS's cached last fix, which can be far from here; record only fresh fixes.
+    const startedAt = Date.now();
     const sub = await Location.watchPositionAsync({
       accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 5, timeInterval: 2000,
     }, location => {
@@ -31,7 +33,7 @@ export function useLiveWalk() {
       const { latitude, longitude, accuracy } = location.coords;
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
       setCurrent({ lat: latitude, lng: longitude });
-      if ((accuracy ?? Infinity) <= 25 && Number.isFinite(location.timestamp)) {
+      if ((accuracy ?? Infinity) <= 25 && Number.isFinite(location.timestamp) && location.timestamp >= startedAt) {
         onPoint({ latitude, longitude, recorded_at: new Date(location.timestamp).toISOString() });
       }
     }, () => { if (generation.current === version) onError(); });
