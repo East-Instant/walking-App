@@ -76,7 +76,7 @@ function TrackScreen({ token }: { token: string }) {
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.map}>
-        <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} pins={showPins ? placePins.pins : undefined} onPinPress={pin => setOpenPinId(pin.id)} />
+        <ZoomableWalkCanvas walks={recorder.walks} current={recorder.current} pins={placePins.pins} pinsVisible={showPins} onPinPress={pin => setOpenPinId(pin.id)} />
         <View style={styles.account}>
           <Pressable
             accessibilityRole="button"
