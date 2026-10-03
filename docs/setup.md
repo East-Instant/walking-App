@@ -147,6 +147,25 @@ npm run web    # PC のブラウザーで開く場合
 
 スマホから接続する場合は、[スマホ実機・エミュレーターの接続](#スマホ実機エミュレーターの接続)の設定も行ってください。
 
+### `npm start` と `npx expo start` の違い
+
+`npm start` は `frontend/package.json` に登録したショートカットで、`npx expo start` と同じ動作です。どちらで起動しても構いません。
+
+| コマンド | 同じ動作のコマンド |
+| --- | --- |
+| `npm start` | `npx expo start` |
+| `npm run web` | `npx expo start --web` |
+
+### Expo アカウントへのログイン
+
+Expo Go で QR コードを読み取って開発する通常の手順では、Expo アカウントへのログインは基本的に不要です。
+EAS Build での開発ビルドの作成や EAS Update での公開を行う場合、または Expo CLI からログインを求められた場合は、`frontend` で次を実行します。
+
+```sh
+npx expo login     # ログイン
+npx expo whoami    # ログイン中のアカウントを確認
+```
+
 ## 3. すべてローカルで起動
 
 Node.js 24、Python 3.12、PostGIS を有効にした PostgreSQL 18 が必要です。macOS / Linux で nvm を使う場合は、ルートで `nvm install`、`nvm use` を実行できます。
